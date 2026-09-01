@@ -1,0 +1,5 @@
+ASSET_CLASS_VALUES = ["Equity", "ETF", "Bond", "Option", "Mutual Fund"]
+EXCHANGE_VALUES = ["NYSE", "NASDAQ", "LSE", "TSX", "ASX"]
+ORDER_SIDE_VALUES = ["buy", "sell"]
+ORDER_STATUS_VALUES = ["pending", "filled", "partially_filled", "cancelled", "rejected"]
+STATEMENT_TYPE_VALUES = ["monthly", "quarterly", "annual", "tax"]

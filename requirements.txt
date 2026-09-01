@@ -1,0 +1,13 @@
+duckdb
+pyarrow
+pandas
+numpy
+faker
+boto3
+fastapi
+uvicorn[standard]
+prometheus-fastapi-instrumentator
+python-dotenv
+pytest
+httpx
+moto[s3]
