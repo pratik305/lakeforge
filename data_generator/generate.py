@@ -104,7 +104,7 @@ def generate_daily_prices(instrument_ids:list,price_dates:list,seed:int):
             })
     return pd.DataFrame(price_records)
 
-def generate_statements(account_ids:list, seed:int,statement_per_account_type=(1,3),s3_key="statements/account_{account_id}/stmt_{i}.pdf",generated_at=pd.Timestamp.now()):
+def generate_statements(account_ids:list, seed:int,statement_per_account_type=(1,3),s3_key="statements/account_{account_id}/stmt_{i}.pdf"):
     np.random.seed(seed)
     statement_records = []
     for account_id in account_ids:
@@ -114,7 +114,8 @@ def generate_statements(account_ids:list, seed:int,statement_per_account_type=(1
                 "statement_id": len(statement_records)+1,
                 "account_id": account_id,
                 "statement_type": np.random.choice(["monthly", "quarterly", "annual", "tax"]),
-                "s3_key": s3_key.format(account_id=account_id, i=i),
-                "generated_at": generated_at
+                "s3_key": s3_key.format(account_id=account_id, i=i)
             })
-    return pd.DataFrame(statement_records)
+    df = pd.DataFrame(statement_records)
+    df["generated_at"] = pd.to_datetime("2024-01-01") + pd.to_timedelta(np.random.randint(0,3* 365, size=len(df)), unit='D')
+    return df 
