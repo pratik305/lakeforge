@@ -47,3 +47,74 @@ def generate_instruments(n:int,sector_ids:list,seed:int):
         "exchange": exchanges,
         "listed_date": listed_dates
     })
+
+def generate_orders(n:int,account_ids:list,seed:int):
+    np.random.seed(seed)
+    order_ids = np.arange(1,n+1)
+    account_ids= np.random.choice(account_ids,size=n,replace=True)
+    order_dates  =pd.date_range(start="2021-01-01", periods=n, freq='D')
+    sides = np.random.choice(["buy","sell"],size=n)
+    status = np.random.choice(["pending","filled","partially_filled","cancelled","rejected"],size=n)
+    total_amounts = np.round(np.random.uniform(100,10000,size=n),2)
+    return pd.DataFrame({
+        "order_id": order_ids,
+        "account_id": account_ids,
+        "order_date": order_dates,
+        "side": sides,
+        "status": status,
+        "total_amount": total_amounts
+    })
+
+def generate_order_fills(orders:pd.DataFrame,instrument_ids:list,seed:int,fills_per_order_range=(1,4)):
+    np.random.seed(seed)
+    fill_records = []
+    order_ids = np.repeat(orders["order_id"].values, np.random.randint(fills_per_order_range[0], fills_per_order_range[1]+1, size=len(orders)))
+    for order_id in order_ids:
+        instrument_id = np.random.choice(instrument_ids)
+        quantity = np.random.randint(1, 100)
+        price = np.round(np.random.uniform(10, 500),2)
+        fill_records.append({
+            "fill_id": len(fill_records)+1,
+            "order_id": order_id,
+            "instrument_id": instrument_id,
+            "quantity": quantity,
+            "price": price
+        })
+    return pd.DataFrame(fill_records)
+
+def generate_daily_prices(instrument_ids:list,price_dates:list,seed:int):
+    np.random.seed(seed)
+    price_records = []
+    for instrument_id in instrument_ids:
+        for price_date in price_dates:
+            open_price = np.round(np.random.uniform(10, 500),2)
+            high_price = np.round(open_price + np.random.uniform(0,50),2)
+            low_price = np.round(open_price - np.random.uniform(0,50),2)
+            close_price = np.round(np.random.uniform(low_price, high_price),2)
+            volume = np.random.randint(1000, 100000)
+            price_records.append({
+                "price_id": len(price_records)+1,
+                "instrument_id": instrument_id,
+                "price_date": price_date,
+                "open_price": open_price,
+                "high_price": high_price,
+                "low_price": low_price,
+                "close_price": close_price,
+                "volume": volume
+            })
+    return pd.DataFrame(price_records)
+
+def generate_statements(account_ids:list, seed:int,statement_per_account_type=(1,3),s3_key="statements/account_{account_id}/stmt_{i}.pdf",generated_at=pd.Timestamp.now()):
+    np.random.seed(seed)
+    statement_records = []
+    for account_id in account_ids:
+        num_statements = np.random.randint(statement_per_account_type[0], statement_per_account_type[1]+1)
+        for i in range(num_statements):
+            statement_records.append({
+                "statement_id": len(statement_records)+1,
+                "account_id": account_id,
+                "statement_type": np.random.choice(["monthly", "quarterly", "annual", "tax"]),
+                "s3_key": s3_key.format(account_id=account_id, i=i),
+                "generated_at": generated_at
+            })
+    return pd.DataFrame(statement_records)
