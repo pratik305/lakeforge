@@ -1,0 +1,45 @@
+{
+  "title": "LakeForge",
+  "uid": "lakeforge-overview",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "API request rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total[1m]))", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "API request latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Host CPU usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Host disk usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})", "refId": "A" }
+      ]
+    }
+  ]
+}
