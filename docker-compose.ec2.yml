@@ -1,0 +1,60 @@
+services:
+  lake-init:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    network_mode: host
+    environment:
+      AWS_REGION: us-east-1
+      LAKEFORGE_BUCKET: LAKEFORGE_BUCKET_NAME
+      LAKEFORGE_TARGET_GB: "5"
+    volumes:
+      - lake-index:/app/index-data
+      - lake-data:/data
+    entrypoint: ["python", "-m", "scripts.init_demo_lake_ec2"]
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    depends_on:
+      lake-init:
+        condition: service_completed_successfully
+    network_mode: host
+    environment:
+      LAKE_INDEX_PATH: /app/index-data/lake_index.duckdb
+    volumes:
+      - lake-index:/app/index-data
+
+  prometheus:
+    image: prom/prometheus:latest
+    network_mode: host
+    volumes:
+      - ./monitoring/prometheus.ec2.yml:/etc/prometheus/prometheus.yml
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    network_mode: host
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: lakeforge
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+
+volumes:
+  lake-index:
+  lake-data:
