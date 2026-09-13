@@ -1,0 +1,75 @@
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: lakeforge
+      MINIO_ROOT_PASSWORD: lakeforge123
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  lake-init:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      AWS_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: lakeforge
+      AWS_SECRET_ACCESS_KEY: lakeforge123
+      AWS_REGION: us-east-1
+      LAKEFORGE_BUCKET: lakeforge-demo
+    volumes:
+      - lake-index:/app/index-data
+    entrypoint: ["python", "scripts/init_demo_lake.py"]
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    depends_on:
+      lake-init:
+        condition: service_completed_successfully
+    environment:
+      LAKE_INDEX_PATH: /app/index-data/lake_index.duckdb
+    volumes:
+      - lake-index:/app/index-data
+    ports:
+      - "8000:8000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: lakeforge
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+
+volumes:
+  minio-data:
+  lake-index:
