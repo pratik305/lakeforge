@@ -2,6 +2,9 @@ from fastapi import Depends, FastAPI, HTTPException
 
 from api.db import get_connection
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
+
 app = FastAPI(title="LakeForge Query API")
 
 INSTRUMENT_COLUMNS = ["instrument_id", "sector_id", "ticker", "name", "asset_class", "exchange", "listed_date"]
@@ -47,4 +50,4 @@ def aggregate_by_sector(con=Depends(get_connection)):
     return [{"sector_id": r[0], "total_value": r[1]} for r in rows]
 
 
-
+Instrumentator().instrument(app).expose(app)
