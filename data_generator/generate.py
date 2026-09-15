@@ -67,20 +67,16 @@ def generate_orders(n:int,account_ids:list,seed:int):
 
 def generate_order_fills(orders:pd.DataFrame,instrument_ids:list,seed:int,fills_per_order_range=(1,4)):
     np.random.seed(seed)
-    fill_records = []
-    order_ids = np.repeat(orders["order_id"].values, np.random.randint(fills_per_order_range[0], fills_per_order_range[1]+1, size=len(orders)))
-    for order_id in order_ids:
-        instrument_id = np.random.choice(instrument_ids)
-        quantity = np.random.randint(1, 100)
-        price = np.round(np.random.uniform(10, 500),2)
-        fill_records.append({
-            "fill_id": len(fill_records)+1,
-            "order_id": order_id,
-            "instrument_id": instrument_id,
-            "quantity": quantity,
-            "price": price
-        })
-    return pd.DataFrame(fill_records)
+    fill_counts = np.random.randint(fills_per_order_range[0], fills_per_order_range[1] + 1, size=len(orders))
+    order_ids = np.repeat(orders["order_id"].values, fill_counts)
+    total_fills = len(order_ids)
+    return pd.DataFrame({
+        "fill_id": np.arange(1, total_fills + 1),
+        "order_id": order_ids,
+        "instrument_id": np.random.choice(instrument_ids, size=total_fills),
+        "quantity": np.random.randint(1, 100, size=total_fills),
+        "price": np.round(np.random.uniform(10, 500, size=total_fills), 2),
+    })
 
 def generate_daily_prices(instrument_ids:list,price_dates:list,seed:int):
     np.random.seed(seed)
