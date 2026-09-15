@@ -53,7 +53,8 @@ services:
     environment:
       GF_SECURITY_ADMIN_PASSWORD: lakeforge
     volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/provisioning-ec2/datasources:/etc/grafana/provisioning/datasources
 
 volumes:
   lake-index:
