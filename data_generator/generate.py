@@ -20,7 +20,7 @@ def generate_accounts(n:int,seed:int):
     emails = [np.random.choice(["gmail.com","yahoo.com","outlook.com"]) for _ in range(n)]
     emails = [f"user{i}@{domain}" for i, domain in enumerate(emails)]
     countries = np.random.choice(["USA","Canada","UK","Australia"],size=n)
-    opened_dates = pd.date_range(start="2020-01-01", periods=n, freq='D')
+    opened_dates = pd.to_datetime("2020-01-01") + pd.to_timedelta(np.random.randint(0, 5 * 365, size=n), unit="D")
     return pd.DataFrame({
         "account_id": account_ids,
         "name": names,
@@ -37,7 +37,7 @@ def generate_instruments(n:int,sector_ids:list,seed:int):
     names = [f"Instrument {i}" for i in range(1,n+1)]
     asset_classes = np.random.choice(["Equity", "ETF", "Bond", "Option", "Mutual Fund"],size=n)
     exchanges = np.random.choice(["NYSE", "NASDAQ", "LSE", "TSX", "ASX"],size=n)
-    listed_dates = pd.date_range(start="2010-01-01", periods=n, freq='D')
+    listed_dates = pd.to_datetime("2010-01-01") + pd.to_timedelta(np.random.randint(0, 15 * 365, size=n), unit="D")
     return pd.DataFrame({
         "instrument_id": instrument_ids,
         "sector_id": sector_ids_sampled,
@@ -52,7 +52,7 @@ def generate_orders(n:int,account_ids:list,seed:int):
     np.random.seed(seed)
     order_ids = np.arange(1,n+1)
     account_ids= np.random.choice(account_ids,size=n,replace=True)
-    order_dates  =pd.date_range(start="2021-01-01", periods=n, freq='D')
+    order_dates = pd.to_datetime("2023-01-01") + pd.to_timedelta(np.random.randint(0, 3 * 365, size=n), unit="D")
     sides = np.random.choice(["buy","sell"],size=n)
     status = np.random.choice(["pending","filled","partially_filled","cancelled","rejected"],size=n)
     total_amounts = np.round(np.random.uniform(100,10000,size=n),2)
